@@ -1,9 +1,16 @@
-const Mural = (function (_render, Filtro) {
+const Mural = (function(_render, Filtro) {
     "use strict"
 
-    let cartoes = JSON.parse(localStorage.getItem("cartoes")).map(cartao => new Cartao(cartao.conteudo, cartao.tipo)) || []
-    cartoes.forEach(cartao => prepararCartao(cartao))
+    let cartoes = pegaCartoesDoUsuario()
 
+    function pegaCartoesDoUsuario() {
+        let cartoesLocal = JSON.parse(localStorage.getItem(usuario))
+        if (cartoesLocal) return cartoesLocal.map(cartao => new Cartao(cartao.conteudo, cartao.tipo))
+
+        return []
+    }
+
+    cartoes.forEach(cartao => prepararCartao(cartao))
     const render = () => _render({ cartoes: cartoes, filtro: Filtro.tagsETexto });
     render()
 
@@ -20,10 +27,20 @@ const Mural = (function (_render, Filtro) {
     }
 
     function salvaCartoes() {
-        localStorage.setItem("cartoes", JSON.stringify(
+        localStorage.setItem(usuario, JSON.stringify(
             cartoes.map(cartao => ({ conteudo: cartao.conteudo, tipo: cartao.tipo }))
         ))
     }
+
+    login.on("login", () => {
+        cartoes = pegaCartoesDoUsuario()
+        render()
+    })
+
+    login.on("logout", () => {
+        cartoes = []
+        render()
+    })
 
     function adiciona(cartao) {
         if (logado) {
